@@ -3,9 +3,7 @@ angular.module('myapp', [
     'ngRoute',
     'ngSanitize',
     'ngCookies',
-    'pascalprecht.translate',
-    'myapp.services',
-    'myapp.home'
+    'pascalprecht.translate'
 ])
     .constant('conf', {
         'epApi': 'http://localhost:4000',
@@ -16,7 +14,7 @@ angular.module('myapp', [
         'use strict';
 
         // Default route
-        $routeProvider.otherwise({redirectTo: '/workout'});
+        $routeProvider.otherwise({redirectTo: '/home'});
 
         // Translations
         $translateProvider.useStaticFilesLoader({
@@ -49,13 +47,14 @@ angular.module('myapp', [
         // Headers
         $httpProvider.defaults.headers.post['Content-Type'] = 'application/json';
     }])
+
     .run(['$rootScope', '$http', '$location', '$cookieStore', function ($rootScope, $http, $location, $cookieStore) {
         // Headers
         $http.defaults.headers.common['X-Myapp-AuthToken'] = $cookieStore.get('myapp-token');
 
-        // Execute before route change
+        // Executes before route change
         $rootScope.$on('$locationChangeStart', function() {
-            console.log('location');
+
         });
 
         $rootScope.$on('$routeChangeStart', function(event, next, current) {

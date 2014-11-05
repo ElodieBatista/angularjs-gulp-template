@@ -1,12 +1,12 @@
-angular.module('myapp.home')
-    .config(function config($routeProvider) {
+angular.module('myapp')
+    .config(['$routeProvider', function config($routeProvider) {
         $routeProvider
             .when('/home',
             {
-                templateUrl: '/home/home.tpl.html',
+                templateUrl: '/scripts/app/home.tpl.html',
                 controller: 'HomeCtrl'
             });
-    })
+    }])
 
     .controller('HomeCtrl', ['$scope', 'apiService', function($scope, apiService) {
         $scope.title = 'Hello World';
