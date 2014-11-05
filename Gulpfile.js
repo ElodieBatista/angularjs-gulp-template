@@ -21,12 +21,14 @@ var paths = {
         images: 'dist/images',
         css: 'dist/css/common',
         cssIE8: 'dist/css/ie8',
+        cssIE7: 'dist/css/ie7',
         cssLibs: 'dist/css/lib/',
         fonts: 'dist/css/fonts/',
         data: 'dist/data/',
         js: 'dist/js',
         jsLibs: 'dist/js/lib/common',
         jsLibsIE8: 'dist/js/lib/ie8',
+        jsLibsIE7: 'dist/js/lib/ie7',
         controllers: 'dist/js/controllers/',
         services: 'dist/js/services/',
         directives: 'dist/js/directives/'
@@ -41,8 +43,10 @@ var paths = {
     js: ['app/scripts/*.js', 'app/scripts/controllers/*.js', 'app/scripts/services/*.js', 'app/scripts/directives/*.js'],
     jsLibs: ['app/scripts/libs/common/*/*.js', 'app/scripts/libs/common/*/*.js.map'],
     jsLibsIE8: ['app/scripts/libs/ie8/*/*.js', 'app/scripts/libs/ie8/*.js'],
+    jsLibsIE7: ['app/scripts/libs/ie7/*/*.js', 'app/scripts/libs/ie7/*.js'],
     css: 'app/styles/common/*.scss',
     cssIE8: 'app/styles/ie8/*.scss',
+    cssIE7: 'app/styles/ie7/*.scss',
     cssLibs: 'app/styles/libs/*/*.css',
     fonts: 'app/styles/fonts/*',
     data: 'app/data/*'
@@ -82,6 +86,15 @@ gulp.task('styles', function() {
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
         .pipe(gulp.dest(paths.dist.cssIE8));
+
+    gulp.src(paths.cssIE7)
+        .pipe(concat('ie7.scss'))
+        .pipe(sass({ style: 'compressed' }))
+        .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
+        .pipe(gulp.dest(paths.dist.cssIE7))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(minifycss())
+        .pipe(gulp.dest(paths.dist.cssIE7));
 
     // CSS Libraries
     gulp.src(paths.cssLibs)
@@ -135,6 +148,12 @@ gulp.task('scripts', function() {
         .pipe(concat('proprietaryIE8.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.dist.jsLibsIE8));
+
+    //JS Libraries for IE8
+    gulp.src(paths.jsLibsIE7)
+        .pipe(concat('proprietaryIE7.js'))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(gulp.dest(paths.dist.jsLibsIE7));
 
     // JS Libraries
     return gulp.src(paths.jsLibs)
