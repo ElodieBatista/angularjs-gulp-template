@@ -12,11 +12,46 @@ var clean = require('gulp-rimraf');
 var express = require('express');
 var refresh = require('gulp-livereload');
 var livereload = require('connect-livereload');
+var folder = require('gulp-folder');
 
 var paths = {
     app: 'app/',
+
+    scripts: {
+        base: 'app/scripts/*.js',
+        app: ['app/scripts/app/*/*.js', 'app/scripts/app/*.js'],
+        common: {
+            controllers :   'app/scripts/common/controllers/*.js',
+            services    :   'app/scripts/common/services/*.js',
+            directives  :   'app/scripts/common/directives/*.js'
+        },
+        libs: {
+            common      :   ['app/scripts/libs/common/*.js', 'app/scripts/libs/common/*/*.js'],
+            ie7         :   ['app/scripts/libs/ie7/*.js', 'app/scripts/libs/ie7/*/*.js'],
+            ie8         :   ['app/scripts/libs/ie8/*.js', 'app/scripts/libs/ie8/*/*.js']
+        }
+    },
+
     dist: {
         base: 'dist/',
+        app: 'dist/app/',
+
+        scripts: {
+            base: 'dist/scripts',
+            app: 'dist/scripts/app',
+            common: {
+                controllers :   'dist/scripts/common/controllers',
+                services    :   'dist/scripts/common/services',
+                directives  :   'dist/scripts/common/directives'
+            },
+            libs: {
+                common      :   'dist/scripts/libs/common',
+                ie7         :   'dist/scripts/libs/ie7',
+                ie8         :   'dist/scripts/libs/ie8'
+            }
+        },
+
+
         views: 'dist/views',
         images: 'dist/images',
         css: 'dist/css/common',
@@ -112,52 +147,55 @@ gulp.task('styles', function() {
 // Scripts Task: Concatenates & minifies our JS
 gulp.task('scripts', function() {
     // App.js
-    gulp.src(paths.mainJs)
+    gulp.src(paths.scripts.base)
         .pipe(concat('app.js'))
-        .pipe(gulp.dest(paths.dist.js))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
-        .pipe(gulp.dest(paths.dist.js));
+        .pipe(gulp.dest(paths.dist.scripts.base));
 
-    // Controllers
-    gulp.src(paths.controllers)
+    // Common Controllers
+    gulp.src(paths.scripts.common.controllers)
         .pipe(concat('controllers.js'))
-        .pipe(gulp.dest(paths.dist.controllers))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
-        .pipe(gulp.dest(paths.dist.controllers));
+        .pipe(gulp.dest(paths.dist.scripts.common.controllers));
 
-    // Services
-    gulp.src(paths.services)
+    // Common Services
+    gulp.src(paths.scripts.common.services)
         .pipe(concat('services.js'))
-        .pipe(gulp.dest(paths.dist.services))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
-        .pipe(gulp.dest(paths.dist.services));
+        .pipe(gulp.dest(paths.dist.scripts.common.services));
 
-    // Directives
-    gulp.src(paths.directives)
+    // Common Directives
+    gulp.src(paths.scripts.common.directives)
         .pipe(concat('directives.js'))
-        .pipe(gulp.dest(paths.dist.directives))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
-        .pipe(gulp.dest(paths.dist.directives));
+        .pipe(gulp.dest(paths.dist.scripts.common.directives));
+
+    // App Scripts
+    gulp.src(path.join(paths.scripts.app, folder, '*.js'))
+        .pipe(concat(folder + '.js'))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(uglify())
+        .pipe(gulp.dest(paths.dist.scripts.app));
 
     //JS Libraries for IE8
-    gulp.src(paths.jsLibsIE8)
+    gulp.src(paths.scripts.libs.ie8)
         .pipe(concat('proprietaryIE8.js'))
         .pipe(rename({suffix: '.min'}))
-        .pipe(gulp.dest(paths.dist.jsLibsIE8));
+        .pipe(gulp.dest(paths.dist.scripts.libs.ie8));
 
-    //JS Libraries for IE8
-    gulp.src(paths.jsLibsIE7)
+    //JS Libraries for IE7
+    gulp.src(paths.scripts.libs.ie7)
         .pipe(concat('proprietaryIE7.js'))
         .pipe(rename({suffix: '.min'}))
-        .pipe(gulp.dest(paths.dist.jsLibsIE7));
+        .pipe(gulp.dest(paths.dist.scripts.libs.ie7));
 
     // JS Libraries
-    return gulp.src(paths.jsLibs)
-        .pipe(gulp.dest(paths.dist.jsLibs));
+    return gulp.src(paths.scripts.libs.common)
+        .pipe(gulp.dest(paths.dist.scripts.libs.common));
 });
 
 // Html Task: Copies index.html and views files and put them in the dist folder
@@ -201,7 +239,7 @@ gulp.task('default', function() {
             app.listen(5000);
             refresh.listen(35729);
 
-            gulp.watch(paths.js, ['lint', 'scripts']);
+            gulp.watch(paths.scripts.base, ['lint', 'scripts']);
             gulp.watch(paths.css, ['styles']);
             gulp.watch([paths.html, paths.views], ['html']);
             gulp.watch(paths.data, ['data']);

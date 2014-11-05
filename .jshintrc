@@ -1,0 +1,7 @@
+{
+    "predef": ["angular"],
+    "globals": {
+        "$": false,
+        "jQuery": false
+    }
+}
