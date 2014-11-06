@@ -132,8 +132,8 @@ var paths = {
             base: 'dist/views/'
         },
 
-        images: 'dist/images/*',
-        data: 'dist/data/*'
+        images: 'dist/images/',
+        data: 'dist/data/'
     }
 };
 
@@ -366,6 +366,7 @@ gulp.task('scripts-app', folder(paths.app.scripts.app, function(folder) {
 gulp.task('scripts-dist', function() {
     // App.js
     gulp.src(paths.app.scripts.all)
+        .pipe(replace(/templateUrl: '\/scripts\/app\/.\/.\.tpl\.html'/))
         .pipe(concat('app.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
@@ -420,7 +421,7 @@ gulp.task('views-dist', ['views-dist-app', 'views-dist-directives'], function() 
 
 gulp.task('views-dist-app', folder(paths.app.views.app, function(folder) {
     return gulp.src(path.join(paths.app.views.app, folder, '*.html'))
-        .pipe(gulp.dest(path.join(paths.dist.views.base, folder)));
+        .pipe(gulp.dest(paths.dist.views.base));
 }));
 
 gulp.task('views-dist-directives', folder(paths.app.views.app, function(folder) {
