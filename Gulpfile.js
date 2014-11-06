@@ -509,15 +509,21 @@ gulp.task('default', function() {
         ['lint', 'views', 'styles-base', 'scripts', 'images', 'fonts', 'data', 'json'],
         'clean-map',
         function() {
+            // Launch server
             app.use(express.static(paths.build.base));
             app.listen(5000);
+            console.log('Server running on localhost:5000');
             refresh.listen(35729);
 
             gulp.watch(paths.app.scripts.all, ['lint', 'scripts']);
             gulp.watch(paths.app.styles.all, ['styles-base']);
             gulp.watch([paths.app.views.base, paths.app.views.modules], ['views']);
-            gulp.watch(paths.data, ['data']);
+            gulp.watch(paths.app.styles.images, ['images']);
+            gulp.watch(paths.app.data, ['data']);
+
+            // TEMP
             gulp.watch('app/json/*.json', ['json']);
+
             gulp.watch('build/**').on('change', refresh.changed);
         }
     );
