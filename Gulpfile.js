@@ -46,7 +46,7 @@ var paths = {
 
         styles: {
             base    :   'app/styles/common/*.scss',
-            app     :   'app/scripts/app/*/*.scss',
+            app     :   'app/scripts/app/',
             ie7     :   'app/styles/ie7/*.scss',
             ie8     :   'app/styles/ie8/*.scss',
             libs    : {
@@ -115,7 +115,7 @@ var paths = {
             libs: {
                 common: 'prod/scripts/libs/common/',
                 ie7: 'prod/scripts/libs/ie7/',
-                ie8: 'prod/scripts/libs/ie8/
+                ie8: 'prod/scripts/libs/ie8/'
             }
         },
 
@@ -124,7 +124,7 @@ var paths = {
             libs: {
                 common: 'prod/styles/libs/common/',
                 ie7: 'prod/styles/libs/ie7/',
-                ie8: 'prod/styles/libs/ie8/
+                ie8: 'prod/styles/libs/ie8/'
             },
             fonts: 'prod/fonts/'
         },
@@ -161,7 +161,7 @@ gulp.task('lint', function() {
 /*
  * STYLES Task: Compiles our SASS and minifies the generated CSS
  */
-gulp.task('styles', ['styles-app'], function() {
+gulp.task('styles', function() {
     // SASS files
     gulp.src(paths.app.styles.base)
         .pipe(concat('styles.scss'))
