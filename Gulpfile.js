@@ -159,47 +159,45 @@ gulp.task('lint', function() {
 /*
  * STYLES Task: Compiles our SASS and minifies the generated CSS
  */
-gulp.task('styles', ['styles-app'], function() {
-    // SASS files
-    gulp.src(paths.app.styles.base)
+gulp.task('styles-base', ['styles-app', 'styles-ie7', 'styles-ie8', 'styles-libs-ie7', 'styles-libs-ie8', 'styles-libs-common'], function() {
+    return gulp.src(paths.app.styles.base)
         .pipe(concat('styles.scss'))
         .pipe(sass({ style: 'compressed' }))
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
         .pipe(gulp.dest(paths.dist.styles.base));
+});
 
-    gulp.src(paths.app.styles.ie7)
+gulp.task('styles-ie7', function() {
+    return gulp.src(paths.app.styles.ie7)
         .pipe(concat('ie7.scss'))
         .pipe(sass({ style: 'compressed' }))
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
         .pipe(gulp.dest(paths.dist.styles.base));
+});
 
-    gulp.src(paths.app.styles.ie8)
+gulp.task('styles-ie8', function() {
+    return gulp.src(paths.app.styles.ie8)
         .pipe(concat('ie8.scss'))
         .pipe(sass({ style: 'compressed' }))
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
         .pipe(gulp.dest(paths.dist.styles.base));
+});
 
-    // CSS Libraries
-    gulp.src(paths.app.styles.libs.common)
-        .pipe(concat('proprietary.css'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(minifycss())
-        .pipe(gulp.dest(paths.dist.styles.libs.common));
-
-    // CSS Libraries for IE7
-    gulp.src(paths.app.styles.libs.ie7)
+gulp.task('styles-libs-ie7', function() {
+    return gulp.src(paths.app.styles.libs.ie7)
         .pipe(concat('proprietary-ie7.css'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
         .pipe(gulp.dest(paths.dist.styles.libs.ie7));
+});
 
-    // CSS Libraries for IE8
+gulp.task('styles-libs-ie8', function() {
     return gulp.src(paths.app.styles.libs.ie8)
         .pipe(concat('proprietary-ie8.css'))
         .pipe(rename({suffix: '.min'}))
@@ -207,7 +205,14 @@ gulp.task('styles', ['styles-app'], function() {
         .pipe(gulp.dest(paths.dist.styles.libs.ie8));
 });
 
-// App Styles
+gulp.task('styles-libs-common', function() {
+    return gulp.src(paths.app.styles.libs.common)
+        .pipe(concat('proprietary.css'))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(minifycss())
+        .pipe(gulp.dest(paths.dist.styles.libs.common));
+});
+
 gulp.task('styles-app', folder(paths.app.styles.app, function(folder) {
     return gulp.src(path.join(paths.app.styles.app, folder, '*.scss'))
         .pipe(concat(folder + '.scss'))
@@ -215,17 +220,14 @@ gulp.task('styles-app', folder(paths.app.styles.app, function(folder) {
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
-        .pipe(gulp.dest(path.join(paths.dist.styles.app, folder)));
+        .pipe(gulp.dest(paths.dist.styles.base, folder));
 }));
 
 /*
  * CLEAN-MAP Task: Delete sass map files
  */
 gulp.task('clean-map', function() {
-    gulp.src(path.join(paths.dist.styles.base, '*.map'), { read: false })
-        .pipe(clean({ force: true }));
-
-    return gulp.src(path.join(paths.dist.scripts.app, '*/*.map'), { read: false })
+    return gulp.src(path.join(paths.dist.styles.base, '*.map'), { read: false })
         .pipe(clean({ force: true }));
 });
 
@@ -365,13 +367,14 @@ app.use(express.static(paths.dist.base));
  */
 gulp.task('default', function() {
     runSequence('clean',
-        ['lint', 'views', 'styles', 'scripts', 'images', 'fonts', 'data', 'json'],
+        ['lint', 'views', 'styles-base', 'scripts', 'images', 'fonts', 'data', 'json'],
+        'clean-map',
         function() {
             app.listen(5000);
             refresh.listen(35729);
 
             gulp.watch(paths.app.scripts.all, ['lint', 'scripts']);
-            gulp.watch(paths.app.styles.all, ['styles']);
+            gulp.watch(paths.app.styles.all, ['styles-base']);
             gulp.watch([paths.app.views.base, paths.app.views.app], ['views']);
             gulp.watch(paths.data, ['data']);
             gulp.watch('app/json/*.json', ['json']);
