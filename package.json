@@ -25,6 +25,7 @@
     "tiny-lr": "^0.1.1",
     "gulp-folders": "^1.0.0",
     "path": "^0.4.9",
-    "gulp-replace-task": "^0.1.0"
+    "gulp-replace-task": "^0.1.0",
+    "gulp-html-replace": "^1.4.1"
   }
 }
