@@ -1,4 +1,4 @@
-angular.module('myapp')
+angular.module('myapp.services', [])
     .factory('apiService', ['conf', '$resource', function(conf, $resource) {
         'use strict';
         return {

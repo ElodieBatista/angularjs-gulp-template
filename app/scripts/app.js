@@ -3,7 +3,11 @@ angular.module('myapp', [
     'ngRoute',
     'ngSanitize',
     'ngCookies',
-    'pascalprecht.translate'
+    'pascalprecht.translate',
+    'myapp.services',
+    'myapp.directives',
+    'myapp.home',
+    'myapp.entity'
 ])
     .constant('conf', {
         'epApi': 'http://localhost:4000',

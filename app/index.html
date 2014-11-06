@@ -4,25 +4,30 @@
         <meta charset="UTF-8">
         <title>My App</title>
 
-        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="images/favicon.ico">
+        <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="styles/images/favicon.ico">
 
-        <link rel="stylesheet" href="styles/libs/common/proprietary.min.css">
-        <link rel="stylesheet" href="styles/common/styles.min.css">
+        <link rel="stylesheet" href="styles/libs/common/bootstrap/bootstrap.min.css">
+        <link rel="stylesheet" href="styles/libs/common/font-awesome/font-awesome.min.css">
+
+        <link rel="stylesheet" href="styles/css/styles.min.css">
 
         <!-- build:css -->
-        <link rel="stylesheet" href="styles/common/home.min.css">
+        <link rel="stylesheet" href="styles/css/home.min.css">
+        <link rel="stylesheet" href="styles/css/entity.min.css">
+        <link rel="stylesheet" href="styles/css/newEntity.min.css">
         <!-- endbuild -->
 
         <!--[if eq IE 7]>
-        <link rel="stylesheet" href="styles/libs/ie7/proprietary-ie7.min.css">
-        <link rel="stylesheet" href="styles/common/ie7.min.css">
-        <script src="scripts/libs/ie7/proprietary-ie7.min.js"></script>
+        <link rel="stylesheet" href="styles/libs/ie7/test-ie7/ie7lib.min.css">
+        <link rel="stylesheet" href="styles/css/ie7.min.css">
+        <script src="scripts/libs/ie7/json.min.js"></script>
         <![endif]-->
 
         <!--[if eq IE 8]>
-        <link rel="stylesheet" href="styles/libs/ie8/proprietary-ie8.min.css">
-        <link rel="stylesheet" href="styles/common/ie8.min.css">
-        <script src="scripts/libs/ie8/proprietary-ie8.min.js"></script>
+        <link rel="stylesheet" href="styles/libs/ie7/test-ie7/ie7lib.min.css">
+        <link rel="stylesheet" href="styles/css/ie8.min.css">
+        <script src="scripts/libs/ie8/html5shiv.min.js"></script>
+        <script src="scripts/libs/ie8/respond.min.js"></script>
         <![endif]-->
     </head>
 
@@ -63,10 +68,12 @@
         <script src="/scripts/app.min.js"></script>
 
         <script src="/scripts/common/services/services.min.js"></script>
-        <!--script src="/scripts/common/directives/directives.min.js"></script>
-        <script src="/scripts/common/controllers/controllers.min.js"></script-->
+        <script src="/scripts/common/directives/directives.min.js"></script>
+        <script src="/scripts/common/controllers/controllers.min.js"></script>
 
-        <script src="/scripts/app/home/home.min.js"></script>
+        <script src="/scripts/modules/home/home.min.js"></script>
+        <script src="/scripts/modules/entity/entity.min.js"></script>
+        <script src="/scripts/modules/entity/new/newEntity.min.js"></script>
         <!-- endbuild -->
     </body>
 </html>

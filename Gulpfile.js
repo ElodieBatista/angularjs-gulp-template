@@ -18,97 +18,107 @@ var gulp = require('gulp'),
 
 
 var paths = {
+    /*
+     * APP paths
+     */
     app: {
         base        : 'app/',
 
         scripts     : {
-            base: 'app/scripts/*.js',
-            app: 'app/scripts/app/',
-            common: {
+            base    :   'app/scripts/app.js',
+            modules :   'app/scripts/modules/',
+            common  : {
                 controllers :   'app/scripts/common/controllers/*.js',
                 services    :   'app/scripts/common/services/*.js',
                 directives  :   'app/scripts/common/directives/*.js'
             },
-            libs: {
-                common      :   ['app/scripts/libs/common/*.js', 'app/scripts/libs/common/*/*.js', 'app/scripts/libs/common/*.map', 'app/scripts/libs/common/*/*.map'],
+            libs    : {
+                common      :   ['app/scripts/libs/common/*/*.js', 'app/scripts/libs/common/*/*.map'],
                 ie7         :   ['app/scripts/libs/ie7/*.js', 'app/scripts/libs/ie7/*/*.js'],
                 ie8         :   ['app/scripts/libs/ie8/*.js', 'app/scripts/libs/ie8/*/*.js']
             },
-            all: ['app/scripts/*.js', 'app/scripts/common/*/*.js', 'app/scripts/common/*/*/*.js', 'app/scripts/app/*/*.js']
+            all     :   ['app/scripts/app.js', 'app/scripts/common/*/*.js', 'app/scripts/modules/*/*.js', 'app/scripts/modules/*/*/*.js']
         },
 
-        views: {
-            base: 'app/index.html',
-            app: 'app/scripts/app/',
-            common: {
-                directives  :   'app/scripts/common/directives/*/*.html'
+        views       : {
+            base    :   'app/index.html',
+            modules :   'app/scripts/modules/',
+            common  : {
+                directives  :   'app/scripts/common/directives/*.html'
             }
         },
 
-        styles: {
+        styles      : {
             base    :   'app/styles/common/*.scss',
-            app     :   'app/scripts/app/',
+            modules :   'app/scripts/modules/',
             ie7     :   'app/styles/ie7/*.scss',
             ie8     :   'app/styles/ie8/*.scss',
             libs    : {
-                common  :   ['app/styles/libs/common/*.min.css', 'app/styles/libs/common/*/*.min.css'],
+                common  :   'app/styles/libs/common/*/*.min.css',
                 ie7     :   ['app/styles/libs/ie7/*.min.css', 'app/styles/libs/ie7/*/*.min.css'],
                 ie8     :   ['app/styles/libs/ie8/*.min.css', 'app/styles/libs/ie8/*/*.min.css']
             },
             all     :   ['app/styles/common/*.scss', 'app/styles/ie7/*.scss', 'app/styles/ie8/*.scss'],
-            allForDist: ['app/styles/common/*.scss', 'app/scripts/app/*/*.scss'],
-            fonts   :   'app/styles/fonts/*'
-        }
+            allForDist: ['app/styles/common/*.scss', 'app/scripts/modules/*/*.scss', 'app/scripts/modules/*/*/*.scss'],
+            fonts   :   'app/styles/fonts/*',
+            images  :   'app/styles/images/*'
+        },
+
+        data        :   'app/data/*',
     },
 
-    images: 'app/images/*',
-    data: 'app/data/*',
 
 
+    /*
+     * BUILD paths
+     */
     build: {
-        base: 'build/',
+        base        :   'build/',
 
-        scripts: {
-            base: 'build/scripts/',
-            app: 'build/scripts/app/',
-            common: {
+        scripts     : {
+            base    :   'build/scripts/',
+            modules :   'build/scripts/modules/',
+            common  : {
                 controllers :   'build/scripts/common/controllers/',
                 services    :   'build/scripts/common/services/',
                 directives  :   'build/scripts/common/directives/'
             },
-            libs: {
+            libs    : {
                 common      :   'build/scripts/libs/common/',
                 ie7         :   'build/scripts/libs/ie7/',
                 ie8         :   'build/scripts/libs/ie8/'
             }
         },
 
-        views: {
-            base: 'build/',
-            app: 'build/scripts/app/',
-            common: {
+        views       : {
+            base    :   'build/',
+            modules :   'build/scripts/modules/',
+            common  : {
                 directives  :   'build/scripts/common/directives/'
             }
         },
 
         styles: {
-            base    :   'build/styles/common/',
-            app     :   'build/scripts/app/',
+            base    :   'build/styles/css/',
             libs    : {
                 common  :   'build/styles/libs/common/',
                 ie7     :   'build/styles/libs/ie7/',
                 ie8     :   'build/styles/libs/ie8/'
             },
-            fonts   :   'build/styles/fonts/'
+            fonts   :   'build/styles/fonts/',
+            images  :   'build/styles/images/'
         },
 
-        images: 'build/images/',
         data: 'build/data/'
     },
 
 
+
+    /*
+     * DIST paths
+     */
     dist: {
-        base: 'dist/',
+        base    : 'dist/',
 
         scripts: {
             base: 'dist/scripts/app/',
@@ -155,7 +165,7 @@ gulp.task('clean-dist', function() {
 
 
 /*
- * LINT Task: checks any JavaScript file and makes sure there are no errors in our code
+ * LINT Task: checks any JavaScript file and makes sure there are no errors in the code
  */
 gulp.task('lint', function() {
     return gulp.src(paths.app.scripts.all)
@@ -166,9 +176,9 @@ gulp.task('lint', function() {
 
 
 /*
- * STYLES Task: Compiles our SASS and minifies the generated CSS
+ * STYLES Task: Compiles SASS and minifies the generated CSS
  */
-gulp.task('styles-base', ['styles-app', 'styles-ie7', 'styles-ie8', 'styles-libs-ie7', 'styles-libs-ie8', 'styles-libs-common'], function() {
+gulp.task('styles-base', ['styles-modules', 'styles-ie7', 'styles-ie8', 'styles-libs-ie7', 'styles-libs-ie8', 'styles-libs-common'], function() {
     return gulp.src(paths.app.styles.base)
         .pipe(concat('styles.scss'))
         .pipe(sass({ style: 'compressed' }))
@@ -200,30 +210,21 @@ gulp.task('styles-ie8', function() {
 
 gulp.task('styles-libs-ie7', function() {
     return gulp.src(paths.app.styles.libs.ie7)
-        .pipe(concat('proprietary-ie7.css'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(minifycss())
         .pipe(gulp.dest(paths.build.styles.libs.ie7));
 });
 
 gulp.task('styles-libs-ie8', function() {
     return gulp.src(paths.app.styles.libs.ie8)
-        .pipe(concat('proprietary-ie8.css'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(minifycss())
         .pipe(gulp.dest(paths.build.styles.libs.ie8));
 });
 
 gulp.task('styles-libs-common', function() {
     return gulp.src(paths.app.styles.libs.common)
-        .pipe(concat('proprietary.css'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(minifycss())
         .pipe(gulp.dest(paths.build.styles.libs.common));
 });
 
-gulp.task('styles-app', folder(paths.app.styles.app, function(folder) {
-    return gulp.src(path.join(paths.app.styles.app, folder, '*.scss'))
+gulp.task('styles-modules', folder(paths.app.styles.modules, function(folder) {
+    return gulp.src(path.join(paths.app.styles.modules, folder, '*.scss'))
         .pipe(concat(folder + '.scss'))
         .pipe(sass({ style: 'compressed' }))
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
@@ -286,8 +287,10 @@ gulp.task('styles-dist-libs-common', function() {
         .pipe(gulp.dest(paths.dist.styles.libs.common));
 });
 
+
+
 /*
- * CLEAN-MAP Task: Delete sass map files
+ * CLEAN-MAP Task: Deletes sass map files
  */
 gulp.task('clean-map', function() {
     return gulp.src(path.join(paths.build.styles.base, '*.map'), { read: false })
@@ -304,59 +307,49 @@ gulp.task('clean-dist-map', function() {
 /*
  * SCRIPTS Task: Concatenates & minifies our JS
  */
-gulp.task('scripts', ['scripts-app'], function() {
-    // App.js
+gulp.task('scripts', ['scripts-modules'], function() {
     gulp.src(paths.app.scripts.base)
         .pipe(concat('app.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
         .pipe(gulp.dest(paths.build.scripts.base));
 
-    // Common Controllers
     gulp.src(paths.app.scripts.common.controllers)
         .pipe(concat('controllers.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
         .pipe(gulp.dest(paths.build.scripts.common.controllers));
 
-    // Common Services
     gulp.src(paths.app.scripts.common.services)
         .pipe(concat('services.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
         .pipe(gulp.dest(paths.build.scripts.common.services));
 
-    // Common Directives
     gulp.src(paths.app.scripts.common.directives)
         .pipe(concat('directives.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
         .pipe(gulp.dest(paths.build.scripts.common.directives));
 
-    //JS Libraries for IE8
     gulp.src(paths.app.scripts.libs.ie8)
-        .pipe(concat('proprietary-ie8.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.build.scripts.libs.ie8));
 
-    //JS Libraries for IE7
     gulp.src(paths.app.scripts.libs.ie7)
-        .pipe(concat('proprietary-ie7.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.build.scripts.libs.ie7));
 
-    // JS Libraries
     return gulp.src(paths.app.scripts.libs.common)
         .pipe(gulp.dest(paths.build.scripts.libs.common));
 });
 
-// App Scripts
-gulp.task('scripts-app', folder(paths.app.scripts.app, function(folder) {
-    return gulp.src(path.join(paths.app.scripts.app, folder, '*.js'))
+gulp.task('scripts-modules', folder(paths.app.scripts.modules, function(folder) {
+    return gulp.src(path.join(paths.app.scripts.modules, folder, '*.js'))
         .pipe(concat(folder + '.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
-        .pipe(gulp.dest(path.join(paths.build.scripts.app, folder)));
+        .pipe(gulp.dest(path.join(paths.build.scripts.modules, folder)));
 }));
 
 
@@ -406,20 +399,20 @@ gulp.task('scripts-dist', function() {
  * VIEWS Task: Copies index.html into build folder,
  * put views files from app folder and common directives folder into build corresponding folder
  */
-gulp.task('views', ['views-app', 'views-directives'], function() {
+gulp.task('views', ['views-modules', 'views-directives'], function() {
     return gulp.src(paths.app.views.base)
         .pipe(gulp.dest(paths.build.views.base));
 });
 
-gulp.task('views-app', folder(paths.app.views.app, function(folder) {
-    return gulp.src(path.join(paths.app.views.app, folder, '*.html'))
-        .pipe(gulp.dest(path.join(paths.build.views.app, folder)));
+gulp.task('views-modules', folder(paths.app.views.modules, function(folder) {
+    return gulp.src(path.join(paths.app.views.modules, folder, '*.html'))
+        .pipe(gulp.dest(path.join(paths.build.views.modules, folder)));
 }));
 
-gulp.task('views-directives', folder(paths.app.views.app, function(folder) {
-    return gulp.src(path.join(paths.app.views.common.directives, folder, '*.html'))
-        .pipe(gulp.dest(path.join(paths.build.views.common.directives, folder)));
-}));
+gulp.task('views-directives', function() {
+    return gulp.src(paths.app.views.common.directives)
+        .pipe(gulp.dest(paths.build.views.common.directives));
+});
 
 gulp.task('views-dist', ['views-dist-app', 'views-dist-directives'], function() {
     return gulp.src(paths.app.views.base)
@@ -430,12 +423,12 @@ gulp.task('views-dist', ['views-dist-app', 'views-dist-directives'], function() 
         .pipe(gulp.dest(paths.dist.base));
 });
 
-gulp.task('views-dist-app', folder(paths.app.views.app, function(folder) {
-    return gulp.src(path.join(paths.app.views.app, folder, '*.html'))
+gulp.task('views-dist-app', folder(paths.app.views.modules, function(folder) {
+    return gulp.src(path.join(paths.app.views.modules, folder, '*.html'))
         .pipe(gulp.dest(paths.dist.views.base));
 }));
 
-gulp.task('views-dist-directives', folder(paths.app.views.app, function(folder) {
+gulp.task('views-dist-directives', folder(paths.app.views.modules, function(folder) {
     return gulp.src(path.join(paths.app.views.common.directives, folder, '*.html'))
         .pipe(gulp.dest(path.join(paths.dist.views.base, folder)));
 }));
@@ -445,8 +438,8 @@ gulp.task('views-dist-directives', folder(paths.app.views.app, function(folder) 
  * IMAGES Task: Copies images and put them in the build folder
  */
 gulp.task('images', function() {
-    return gulp.src(paths.images)
-        .pipe(gulp.dest(paths.build.images));
+    return gulp.src(paths.app.styles.images)
+        .pipe(gulp.dest(paths.build.styles.images));
 });
 
 gulp.task('images-dist', function() {
@@ -475,7 +468,7 @@ gulp.task('fonts-dist', function() {
  * DATA Task:  Copies data files and put them in the build folder
  */
 gulp.task('data', function() {
-    return gulp.src(paths.data)
+    return gulp.src(paths.app.data)
         .pipe(gulp.dest(paths.build.data));
 });
 
@@ -522,7 +515,7 @@ gulp.task('default', function() {
 
             gulp.watch(paths.app.scripts.all, ['lint', 'scripts']);
             gulp.watch(paths.app.styles.all, ['styles-base']);
-            gulp.watch([paths.app.views.base, paths.app.views.app], ['views']);
+            gulp.watch([paths.app.views.base, paths.app.views.modules], ['views']);
             gulp.watch(paths.data, ['data']);
             gulp.watch('app/json/*.json', ['json']);
             gulp.watch('build/**').on('change', refresh.changed);
