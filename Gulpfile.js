@@ -13,6 +13,7 @@ var gulp = require('gulp'),
     refresh = require('gulp-livereload'),
     livereload = require('connect-livereload'),
     folder = require('gulp-folders'),
+    replace = require('gulp-replace-task'),
     htmlreplace = require('gulp-html-replace');
 
 
@@ -366,7 +367,17 @@ gulp.task('scripts-app', folder(paths.app.scripts.app, function(folder) {
 gulp.task('scripts-dist', function() {
     // App.js
     gulp.src(paths.app.scripts.all)
-        .pipe(replace(/templateUrl: '\/scripts\/app\/.\/.\.tpl\.html'/))
+        .pipe(replace({
+            patterns: [
+                {
+                    match: /templateUrl: '\/scripts\/app\/[a-z]+\/[a-z]+\.tpl\.html'/g,
+                    replacement: function (str) {
+                        var start = str.lastIndexOf('/') + 1;
+                        return "templateUrl: '/views/" + str.substring(start);
+                    }
+                }
+            ]
+        }))
         .pipe(concat('app.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(uglify())
