@@ -90,14 +90,12 @@ var paths = {
         styles: {
             base    :   'dist/styles/common/',
             app     :   'dist/scripts/app/',
-            ie7     :   'dist/styles/ie7/',
-            ie8     :   'dist/styles/ie8/',
             libs    : {
                 common  :   'dist/styles/libs/common/',
                 ie7     :   'dist/styles/libs/ie7/',
                 ie8     :   'dist/styles/libs/ie8/'
             },
-            fonts   :   'dist/styles/fonts/*'
+            fonts   :   'dist/styles/fonts/'
         },
 
         images: 'dist/images/',
@@ -141,7 +139,7 @@ var paths = {
  * CLEAN Task: Delete the dist directory
  */
 gulp.task('clean', function() {
-    return gulp.src(paths.dist.base)
+    return gulp.src(paths.dist.base, { read: false })
         .pipe(clean());
 });
 
@@ -161,7 +159,7 @@ gulp.task('lint', function() {
 /*
  * STYLES Task: Compiles our SASS and minifies the generated CSS
  */
-gulp.task('styles', function() {
+gulp.task('styles', ['styles-app'], function() {
     // SASS files
     gulp.src(paths.app.styles.base)
         .pipe(concat('styles.scss'))
@@ -177,7 +175,7 @@ gulp.task('styles', function() {
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
-        .pipe(gulp.dest(paths.dist.styles.ie7));
+        .pipe(gulp.dest(paths.dist.styles.base));
 
     gulp.src(paths.app.styles.ie8)
         .pipe(concat('ie8.scss'))
@@ -185,7 +183,7 @@ gulp.task('styles', function() {
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
-        .pipe(gulp.dest(paths.dist.styles.ie8));
+        .pipe(gulp.dest(paths.dist.styles.base));
 
     // CSS Libraries
     gulp.src(paths.app.styles.libs.common)
@@ -202,15 +200,11 @@ gulp.task('styles', function() {
         .pipe(gulp.dest(paths.dist.styles.libs.ie7));
 
     // CSS Libraries for IE8
-    gulp.src(paths.app.styles.libs.ie8)
+    return gulp.src(paths.app.styles.libs.ie8)
         .pipe(concat('proprietary-ie8.css'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
         .pipe(gulp.dest(paths.dist.styles.libs.ie8));
-
-    // Fonts
-    return gulp.src(paths.app.styles.fonts)
-        .pipe(gulp.dest(paths.dist.styles.fonts));
 });
 
 // App Styles
@@ -223,6 +217,17 @@ gulp.task('styles-app', folder(paths.app.styles.app, function(folder) {
         .pipe(minifycss())
         .pipe(gulp.dest(path.join(paths.dist.styles.app, folder)));
 }));
+
+/*
+ * CLEAN-MAP Task: Delete sass map files
+ */
+gulp.task('clean-map', function() {
+    gulp.src(path.join(paths.dist.styles.base, '*.map'), { read: false })
+        .pipe(clean({ force: true }));
+
+    return gulp.src(path.join(paths.dist.scripts.app, '*/*.map'), { read: false })
+        .pipe(clean({ force: true }));
+});
 
 
 
@@ -260,13 +265,13 @@ gulp.task('scripts', ['scripts-app'], function() {
 
     //JS Libraries for IE8
     gulp.src(paths.app.scripts.libs.ie8)
-        .pipe(concat('proprietaryIE8.js'))
+        .pipe(concat('proprietary-ie8.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.dist.scripts.libs.ie8));
 
     //JS Libraries for IE7
     gulp.src(paths.app.scripts.libs.ie7)
-        .pipe(concat('proprietaryIE7.js'))
+        .pipe(concat('proprietary-ie7.js'))
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.dist.scripts.libs.ie7));
 
@@ -318,6 +323,16 @@ gulp.task('images', function() {
 
 
 /*
+ * FONTS Task: Copies fonts and put them in the dist folder
+ */
+gulp.task('fonts', function() {
+    return gulp.src(paths.app.styles.fonts)
+        .pipe(gulp.dest(paths.dist.styles.fonts));
+});
+
+
+
+/*
  * DATA Task:  Copies data files and put them in the dist folder
  */
 gulp.task('data', function() {
@@ -350,13 +365,13 @@ app.use(express.static(paths.dist.base));
  */
 gulp.task('default', function() {
     runSequence('clean',
-        ['lint', 'views', 'styles', 'scripts', 'images', 'data', 'json'],
+        ['lint', 'views', 'styles', 'scripts', 'images', 'fonts', 'data', 'json'],
         function() {
             app.listen(5000);
             refresh.listen(35729);
 
             gulp.watch(paths.app.scripts.all, ['lint', 'scripts']);
-            gulp.watch(paths.css, ['styles']);
+            gulp.watch(paths.app.styles.all, ['styles']);
             gulp.watch([paths.app.views.base, paths.app.views.app], ['views']);
             gulp.watch(paths.data, ['data']);
             gulp.watch('app/json/*.json', ['json']);
