@@ -1,5 +1,7 @@
 var gulp = require('gulp'),
     path = require('path'),
+    fs = require('fs'),
+    merge = require('merge-stream'),
     runSequence = require('run-sequence'),
     jshint = require('gulp-jshint'),
     sass = require('gulp-ruby-sass'),
@@ -27,6 +29,7 @@ var paths = {
         scripts     : {
             base    :   'app/scripts/app.js',
             modules :   'app/scripts/modules/',
+            submodules: 'app/scripts/modules/*/',
             common  : {
                 controllers :   'app/scripts/common/controllers/*.js',
                 services    :   'app/scripts/common/services/*.js',
@@ -64,7 +67,7 @@ var paths = {
             images  :   'app/styles/images/*'
         },
 
-        data        :   'app/data/*',
+        data        :   'app/data/*'
     },
 
 
@@ -224,7 +227,7 @@ gulp.task('styles-libs-common', function() {
 });
 
 gulp.task('styles-modules', folder(paths.app.styles.modules, function(folder) {
-    return gulp.src(path.join(paths.app.styles.modules, folder, '*.scss'))
+    return gulp.src([path.join(paths.app.styles.modules, folder, '*.scss'), path.join(paths.app.styles.modules, folder, '*/*.scss')])
         .pipe(concat(folder + '.scss'))
         .pipe(sass({ style: 'compressed' }))
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
@@ -304,6 +307,15 @@ gulp.task('clean-dist-map', function() {
 
 
 
+function getFolders(dir){
+    return fs.readdirSync(dir)
+        .filter(function(file){
+            return fs.statSync(path.join(dir, file)).isDirectory();
+        });
+}
+
+
+
 /*
  * SCRIPTS Task: Concatenates & minifies our JS
  */
@@ -344,13 +356,32 @@ gulp.task('scripts', ['scripts-modules'], function() {
         .pipe(gulp.dest(paths.build.scripts.libs.common));
 });
 
-gulp.task('scripts-modules', folder(paths.app.scripts.modules, function(folder) {
-    return gulp.src(path.join(paths.app.scripts.modules, folder, '*.js'))
-        .pipe(concat(folder + '.js'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(uglify())
-        .pipe(gulp.dest(path.join(paths.build.scripts.modules, folder)));
-}));
+gulp.task('scripts-modules', function() {
+    var folders = getFolders(paths.app.scripts.modules);
+    var subfolders = [], result = [], i, l;
+
+    for (i = 0, l = folders.length; i < l; i++) {
+        subfolders.push(getFolders(path.join(paths.app.scripts.modules, folders[i])));
+    }
+
+    for (i = 0, l = folders.length; i < l; i++) {
+        result.push(folders[i]);
+        for (var j = 0, le = subfolders[i].length; j < le; j++) {
+            result.push(folders[i] + '/' + subfolders[i][j]);
+        }
+    }
+
+    var tasks = result.map(function(folder) {
+        var str = folder.substring(folder.lastIndexOf('/') + 1);
+        return gulp.src(path.join(paths.app.scripts.modules, folder, '/*.js'))
+            .pipe(concat(str + '.js'))
+            .pipe(uglify())
+            .pipe(rename({suffix: '.min'}))
+            .pipe(gulp.dest(path.join(paths.build.scripts.modules, folder)));
+    });
+
+    return merge(tasks);
+});
 
 
 
@@ -405,7 +436,7 @@ gulp.task('views', ['views-modules', 'views-directives'], function() {
 });
 
 gulp.task('views-modules', folder(paths.app.views.modules, function(folder) {
-    return gulp.src(path.join(paths.app.views.modules, folder, '*.html'))
+    return gulp.src([path.join(paths.app.views.modules, folder, '*.html'), path.join(paths.app.views.modules, folder, '*/*.html')])
         .pipe(gulp.dest(path.join(paths.build.views.modules, folder)));
 }));
 
