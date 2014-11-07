@@ -3,6 +3,6 @@ angular.module('myapp.directives', [])
         'use strict';
         return {
             restrict: 'A',
-            templateUrl: 'scripts/common/directives/navbar.tpl.html'
+            templateUrl: '/scripts/common/directives/navbar.tpl.html'
         };
     }]);
