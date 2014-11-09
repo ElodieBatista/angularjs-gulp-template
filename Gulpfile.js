@@ -154,6 +154,10 @@ var paths = {
 
 
 
+var app = express();
+
+
+
 /*
  * CLEAN Task: Delete the destination directory
  */
@@ -306,6 +310,11 @@ function getFolders(dir){
         });
 }
 
+function replaceViewsDist(str) {
+    var start = str.lastIndexOf('/') + 1;
+    return "templateUrl: '/views/" + str.substring(start);
+}
+
 
 
 /*
@@ -375,16 +384,6 @@ gulp.task('scripts-modules', function() {
     return merge(tasks);
 });
 
-
-function replaceViewsDist(str) {
-    var start = str.lastIndexOf('/') + 1;
-    return "templateUrl: '/views/" + str.substring(start);
-}
-
-
-/*
- * SCRIPTS Task: Concatenates & minifies our JS
- */
 gulp.task('scripts-dist', function() {
     gulp.src(paths.app.scripts.all)
         .pipe(replace({
@@ -477,6 +476,7 @@ gulp.task('views-dist-modules', function() {
 });
 
 
+
 /*
  * IMAGES Task: Copies images and put them in the build folder
  */
@@ -538,12 +538,6 @@ gulp.task('json-dist', function() {
 
 
 
-// Server configuration
-var app = express();
-app.use(livereload());
-
-
-
 /*
  * DEFAULT Task: Generate dev files, launch server and listen for files' changes
  */
@@ -552,7 +546,8 @@ gulp.task('default', function() {
         ['lint', 'views', 'styles-base', 'scripts', 'images', 'fonts', 'data', 'json'],
         'clean-map',
         function() {
-            // Launch server
+            // Launch server & live reload
+            app.use(livereload());
             app.use(express.static(paths.build.base));
             app.listen(5000);
             console.log('Server running on localhost:5000');
