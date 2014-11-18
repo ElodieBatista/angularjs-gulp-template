@@ -49,12 +49,14 @@ var paths = {
             common  : {
                 directives  :   'app/scripts/common/directives/*.html'
             },
+            all     :   ['app/index.html', 'app/scripts/modules/*/*.html', 'app/scripts/common/directives/*.html'],
             allForDist: ['app/scripts/common/directives/*.html', 'app/scripts/modules/*/*.html', 'app/scripts/modules/*/*/*.html']
         },
 
         styles      : {
             base    :   'app/styles/common/*.scss',
             modules :   'app/scripts/modules/',
+            partials:   '/app/styles/partials',
             ie7     :   'app/styles/ie7/*.scss',
             ie8     :   'app/styles/ie8/*.scss',
             libs    : {
@@ -186,7 +188,7 @@ gulp.task('lint', function() {
 /*
  * STYLES Task: Compiles SASS and minifies the generated CSS
  */
-gulp.task('styles-base', ['styles-modules', 'styles-ie7', 'styles-ie8', 'styles-libs-ie7', 'styles-libs-ie8', 'styles-libs-common'], function() {
+gulp.task('styles-base', ['styles-ie7', 'styles-ie8', 'styles-libs-ie7', 'styles-libs-ie8', 'styles-libs-common'], function() {
     return gulp.src(paths.app.styles.base)
         .pipe(concat('styles.scss'))
         .pipe(sass({ style: 'compressed' }))
@@ -234,7 +236,10 @@ gulp.task('styles-libs-common', function() {
 gulp.task('styles-modules', folder(paths.app.styles.modules, function(folder) {
     return gulp.src([path.join(paths.app.styles.modules, folder, '*.scss'), path.join(paths.app.styles.modules, folder, '*/*.scss')])
         .pipe(concat(folder + '.scss'))
-        .pipe(sass({ style: 'compressed' }))
+        .pipe(sass({
+            style: 'compressed',
+            loadPath: [__dirname + paths.app.styles.partials]
+        }))
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
@@ -244,7 +249,10 @@ gulp.task('styles-modules', folder(paths.app.styles.modules, function(folder) {
 gulp.task('styles-dist-base', ['styles-dist-ie7', 'styles-dist-ie8', 'styles-dist-libs-ie7', 'styles-dist-libs-ie8', 'styles-dist-libs-common'], function() {
     return gulp.src(paths.app.styles.allForDist)
         .pipe(concat('styles.scss'))
-        .pipe(sass({ style: 'compressed' }))
+        .pipe(sass({
+            style: 'compressed',
+            loadPath: [__dirname + paths.app.styles.partials]
+        }))
         .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
         .pipe(rename({suffix: '.min'}))
         .pipe(minifycss())
@@ -544,6 +552,7 @@ gulp.task('json-dist', function() {
 gulp.task('default', function() {
     runSequence('clean',
         ['lint', 'views', 'styles-base', 'scripts', 'images', 'fonts', 'data', 'json'],
+        'styles-modules',
         'clean-map',
         function() {
             // Launch server & live reload
@@ -555,7 +564,7 @@ gulp.task('default', function() {
 
             gulp.watch(paths.app.scripts.all, ['lint', 'scripts']);
             gulp.watch(paths.app.styles.all, ['styles-base']);
-            gulp.watch([paths.app.views.base, paths.app.views.modules], ['views']);
+            gulp.watch(paths.app.views.all, ['views']);
             gulp.watch(paths.app.styles.images, ['images']);
             gulp.watch(paths.app.data, ['data']);
 
