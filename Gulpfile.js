@@ -49,7 +49,7 @@ var paths = {
             common  : {
                 directives  :   'app/scripts/common/directives/*.html'
             },
-            all     :   ['app/index.html', 'app/scripts/modules/*/*.html', 'app/scripts/common/directives/*.html'],
+            all     :   ['app/index.html', 'app/scripts/modules/*/*.html', 'app/scripts/modules/*/*/*.html', 'app/scripts/common/directives/*.html'],
             allForDist: ['app/scripts/common/directives/*.html', 'app/scripts/modules/*/*.html', 'app/scripts/modules/*/*/*.html']
         },
 
