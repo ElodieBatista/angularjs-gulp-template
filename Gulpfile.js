@@ -29,7 +29,6 @@ var paths = {
         scripts     : {
             base    :   'app/scripts/app.js',
             modules :   'app/scripts/modules/',
-            submodules: 'app/scripts/modules/*/',
             common  : {
                 controllers :   'app/scripts/common/controllers/*.js',
                 services    :   'app/scripts/common/services/*.js',
@@ -40,7 +39,7 @@ var paths = {
                 ie7         :   ['app/scripts/libs/ie7/*.js', 'app/scripts/libs/ie7/*/*.js'],
                 ie8         :   ['app/scripts/libs/ie8/*.js', 'app/scripts/libs/ie8/*/*.js']
             },
-            all     :   ['app/scripts/app.js', 'app/scripts/common/*/*.js', 'app/scripts/modules/*/*.js', 'app/scripts/modules/*/*/*.js']
+            all     :   []
         },
 
         views       : {
@@ -49,8 +48,7 @@ var paths = {
             common  : {
                 directives  :   'app/scripts/common/directives/*.html'
             },
-            all     :   ['app/index.html', 'app/scripts/modules/*/*.html', 'app/scripts/modules/*/*/*.html', 'app/scripts/common/directives/*.html'],
-            allForDist: ['app/scripts/common/directives/*.html', 'app/scripts/modules/*/*.html', 'app/scripts/modules/*/*/*.html']
+            all     :   []
         },
 
         styles      : {
@@ -64,8 +62,7 @@ var paths = {
                 ie7     :   ['app/styles/libs/ie7/*.min.css', 'app/styles/libs/ie7/*/*.min.css'],
                 ie8     :   ['app/styles/libs/ie8/*.min.css', 'app/styles/libs/ie8/*/*.min.css']
             },
-            all     :   ['app/styles/common/*.scss', 'app/styles/ie7/*.scss', 'app/styles/ie8/*.scss'],
-            allForDist: ['app/styles/common/*.scss', 'app/scripts/modules/*/*.scss', 'app/scripts/modules/*/*/*.scss'],
+            all     :   [],
             fonts   :   'app/styles/fonts/*',
             images  :   'app/styles/images/*'
         },
@@ -155,9 +152,33 @@ var paths = {
 };
 
 
+function setAllScriptsAndStyles() {
+    var i, l;
+
+    getFoldersTree('', paths.app.scripts.modules, paths.app.scripts.all);
+    for (i = 0, l = paths.app.scripts.all.length; i < l; i++) {
+        paths.app.scripts.all[i] += '/*.js';
+    }
+    paths.app.scripts.all.push(paths.app.scripts.base);
+    paths.app.scripts.all.push(paths.app.scripts.common.controllers);
+    paths.app.scripts.all.push(paths.app.scripts.common.services);
+    paths.app.scripts.all.push(paths.app.scripts.common.directives);
+
+    getFoldersTree('', paths.app.styles.modules, paths.app.styles.all);
+    for (i = 0, l = paths.app.styles.all.length; i < l; i++) {
+        paths.app.styles.all[i] += '/*.scss';
+    }
+    paths.app.styles.all.push(paths.app.styles.base);
+
+    getFoldersTree('', paths.app.views.modules, paths.app.views.all);
+    for (i = 0, l = paths.app.views.all.length; i < l; i++) {
+        paths.app.views.all[i] += '/*.html';
+    }
+}
+
+setAllScriptsAndStyles();
 
 var app = express();
-
 
 
 /*
@@ -233,21 +254,31 @@ gulp.task('styles-libs-common', function() {
         .pipe(gulp.dest(paths.build.styles.libs.common));
 });
 
-gulp.task('styles-modules', folder(paths.app.styles.modules, function(folder) {
-    return gulp.src([path.join(paths.app.styles.modules, folder, '*.scss'), path.join(paths.app.styles.modules, folder, '*/*.scss')])
-        .pipe(concat(folder + '.scss'))
-        .pipe(sass({
-            style: 'compressed',
-            loadPath: [__dirname + paths.app.styles.partials]
-        }))
-        .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(minifycss())
-        .pipe(gulp.dest(paths.build.styles.base, folder));
-}));
+gulp.task('styles-modules', function() {
+    var results = [];
+    getFoldersTree('', paths.app.styles.modules, results);
+
+    var tasks = results.map(function(folder) {
+        var str = folder.substring(folder.lastIndexOf(paths.app.styles.modules) + paths.app.styles.modules.length + 1);
+        var name = str.replace(/\\/g, '');
+
+        return gulp.src(path.join(folder, '*.scss'))
+            .pipe(concat(name + '.scss'))
+            .pipe(sass({
+                style: 'compressed',
+                loadPath: [__dirname + paths.app.styles.partials]
+            }))
+            .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1'))
+            .pipe(rename({suffix: '.min'}))
+            .pipe(minifycss())
+            .pipe(gulp.dest(paths.build.styles.base));
+    });
+
+    return merge(tasks);
+});
 
 gulp.task('styles-dist-base', ['styles-dist-ie7', 'styles-dist-ie8', 'styles-dist-libs-ie7', 'styles-dist-libs-ie8', 'styles-dist-libs-common'], function() {
-    return gulp.src(paths.app.styles.allForDist)
+    return gulp.src(paths.app.styles.all)
         .pipe(concat('styles.scss'))
         .pipe(sass({
             style: 'compressed',
@@ -311,9 +342,9 @@ gulp.task('clean-dist-map', function() {
 
 
 
-function getFolders(dir){
+function getFolders(dir) {
     return fs.readdirSync(dir)
-        .filter(function(file){
+        .filter(function(file) {
             return fs.statSync(path.join(dir, file)).isDirectory();
         });
 }
@@ -354,39 +385,42 @@ gulp.task('scripts', ['scripts-modules'], function() {
         .pipe(gulp.dest(paths.build.scripts.common.directives));
 
     gulp.src(paths.app.scripts.libs.ie8)
-        .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.build.scripts.libs.ie8));
 
     gulp.src(paths.app.scripts.libs.ie7)
-        .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.build.scripts.libs.ie7));
 
     return gulp.src(paths.app.scripts.libs.common)
         .pipe(gulp.dest(paths.build.scripts.libs.common));
 });
 
-gulp.task('scripts-modules', function() {
-    var folders = getFolders(paths.app.scripts.modules);
-    var subfolders = [], result = [], i, l;
+function getFoldersTree(root, currpath, results) {
+    results.push(path.join(currpath + '/' + root));
+    var currFolders = getFolders(path.join(currpath + '/' + root));
 
-    for (i = 0, l = folders.length; i < l; i++) {
-        subfolders.push(getFolders(path.join(paths.app.scripts.modules, folders[i])));
-    }
-
-    for (i = 0, l = folders.length; i < l; i++) {
-        result.push(folders[i]);
-        for (var j = 0, le = subfolders[i].length; j < le; j++) {
-            result.push(folders[i] + '/' + subfolders[i][j]);
+    if (currFolders.length > 0) {
+        for (var i = 0, l = currFolders.length; i < l; i++) {
+            (function(j) {
+                getFoldersTree(currFolders[j], path.join(currpath + '/' + root), results);
+            })(i);
         }
     }
 
-    var tasks = result.map(function(folder) {
-        var str = folder.substring(folder.lastIndexOf('/') + 1);
-        return gulp.src(path.join(paths.app.scripts.modules, folder, '/*.js'))
-            .pipe(concat(str + '.js'))
+    return;
+}
+
+gulp.task('scripts-modules', function() {
+    var results = [];
+    getFoldersTree('', paths.app.scripts.modules, results);
+
+    var tasks = results.map(function(folder) {
+        var str = folder.substring(folder.lastIndexOf(paths.app.scripts.modules) + paths.app.scripts.modules.length + 1);
+        var name = str.replace(/\\/g, '');
+        return gulp.src(path.join(folder, '/*.js'))
+            .pipe(concat(name + '.js'))
             .pipe(uglify())
             .pipe(rename({suffix: '.min'}))
-            .pipe(gulp.dest(path.join(paths.build.scripts.modules, folder)));
+            .pipe(gulp.dest(path.join(paths.build.scripts.modules, str)));
     });
 
     return merge(tasks);
@@ -408,12 +442,10 @@ gulp.task('scripts-dist', function() {
         .pipe(gulp.dest(paths.dist.scripts.base));
 
     gulp.src(paths.app.scripts.libs.ie8)
-        .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest(paths.dist.scripts.libs.ie8));
 
     gulp.src(paths.app.scripts.libs.ie7)
-        .pipe(rename({suffix: '.min'}))
-        .pipe(gulp.dest(paths.build.scripts.libs.ie7));
+        .pipe(gulp.dest(paths.dist.scripts.libs.ie7));
 
     return gulp.src(paths.app.scripts.libs.common)
         .pipe(gulp.dest(paths.dist.scripts.libs.common));
@@ -430,10 +462,18 @@ gulp.task('views', ['views-modules', 'views-directives'], function() {
         .pipe(gulp.dest(paths.build.views.base));
 });
 
-gulp.task('views-modules', folder(paths.app.views.modules, function(folder) {
-    return gulp.src([path.join(paths.app.views.modules, folder, '*.html'), path.join(paths.app.views.modules, folder, '*/*.html')])
-        .pipe(gulp.dest(path.join(paths.build.views.modules, folder)));
-}));
+gulp.task('views-modules', function() {
+    var results = [];
+    getFoldersTree('', paths.app.views.modules, results);
+
+    var tasks = results.map(function(folder) {
+        var str = folder.substring(folder.lastIndexOf(paths.app.views.modules) + paths.app.views.modules.length + 1);
+        return gulp.src(path.join(folder, '/*.html'))
+            .pipe(gulp.dest(path.join(paths.build.views.modules, str)));
+    });
+
+    return merge(tasks);
+});
 
 gulp.task('views-directives', function() {
     return gulp.src(paths.app.views.common.directives)
@@ -449,34 +489,17 @@ gulp.task('views-dist', ['views-dist-modules', 'views-dist-directives'], functio
         .pipe(gulp.dest(paths.dist.base));
 });
 
-gulp.task('views-dist-modules2', folder(paths.app.views.modules, function(folder) {
-    return gulp.src([path.join(paths.app.views.modules, folder, '*.html'), path.join(paths.app.views.modules, folder, '*/*.html')])
-        .pipe(gulp.dest(paths.dist.views.base));
-}));
-
 gulp.task('views-dist-directives', function() {
     return gulp.src(paths.app.views.common.directives)
         .pipe(gulp.dest(paths.dist.views.base));
 });
 
 gulp.task('views-dist-modules', function() {
-    var folders = getFolders(paths.app.views.modules);
-    var subfolders = [], result = [], i, l;
+    var results = [];
+    getFoldersTree('', paths.app.views.modules, results);
 
-    for (i = 0, l = folders.length; i < l; i++) {
-        subfolders.push(getFolders(path.join(paths.app.views.modules, folders[i])));
-    }
-
-    for (i = 0, l = folders.length; i < l; i++) {
-        result.push(folders[i]);
-        for (var j = 0, le = subfolders[i].length; j < le; j++) {
-            result.push(folders[i] + '/' + subfolders[i][j]);
-        }
-    }
-
-    var tasks = result.map(function(folder) {
-        var str = folder.substring(folder.lastIndexOf('/') + 1);
-        return gulp.src(path.join(paths.app.scripts.modules, folder, '/*.html'))
+    var tasks = results.map(function(folder) {
+        return gulp.src(path.join(folder, '/*.html'))
             .pipe(gulp.dest(paths.dist.views.base));
     });
 
@@ -564,7 +587,7 @@ gulp.task('default', function() {
 
             gulp.watch(paths.app.scripts.all, ['lint', 'scripts']);
             gulp.watch(paths.app.styles.all, ['styles-base']);
-            gulp.watch(paths.app.views.all, ['views']);
+            gulp.watch([paths.app.views.all, paths.app.views.base], ['views']);
             gulp.watch(paths.app.styles.images, ['images']);
             gulp.watch(paths.app.data, ['data']);
 
